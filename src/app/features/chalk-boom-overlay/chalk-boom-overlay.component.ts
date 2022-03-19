@@ -17,9 +17,12 @@ import {
   keyframes,
 } from '@angular/animations';
 import { Point } from 'src/app/models/point';
+import { ActivatedRoute } from '@angular/router';
 import { ChalkBoomService, PlayerData } from './services/chalk-boom.service';
 import { Circle } from 'src/app/models/circle';
 import { BoundingBox } from 'src/app/models/bounding-box';
+import { Observable, Subject, Subscription } from 'rxjs';
+import { map } from 'rxjs/operators';
 
 interface Teams {
   [key: string]: string[];
@@ -110,6 +113,10 @@ export class ChalkBoomOverlayComponent implements OnInit {
   scores: { [key: string]: number } = {};
 
   boomRate = 15;
+  
+  username: Observable<string>;
+  usernameSubscription: Subscription;
+  user: string;
 
   progress = 0;
 
@@ -134,16 +141,31 @@ export class ChalkBoomOverlayComponent implements OnInit {
 
   constructor(
     private cdr: ChangeDetectorRef,
-    private chalkBoom: ChalkBoomService
-  ) {}
+    private chalkBoom: ChalkBoomService,
+    route: ActivatedRoute
+  ) {
+    this.username = route.params.pipe(map(p => p.username));
+  }
 
   ngOnInit(): void {
     console.log('boom overlay component ngoninit');
+    this.usernameSubscription = this.username.subscribe({
+      next: (username) => {
+        this.user = username;
+      }, 
+      error(err) {
+        console.error('error', err);
+      }
+    })
     setTimeout(() => {
       this.gameInit();
     }, this.startupTime);
     this.chatInit();
     this.startup();
+  }
+
+  ngOnDestroy(): void {
+    this.usernameSubscription.unsubscribe(); 
   }
 
   startup() {}
@@ -223,7 +245,8 @@ export class ChalkBoomOverlayComponent implements OnInit {
         }
       }
     };
-    ComfyJS.Init('FiniteSingularity');
+    console.log(`initing for ${this.user}`)
+    ComfyJS.Init(this.user);
   }
 
   randomizeStart(): void {

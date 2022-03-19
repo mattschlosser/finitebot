@@ -22,7 +22,7 @@ export class BoomComponent implements OnInit, AfterViewInit, OnChanges {
   constructor() { }
 
   ngOnInit(): void {
-
+    console.log('a boom was created');
   }
 
   ngOnChanges(simpleChanges: SimpleChanges): void {
